@@ -6,6 +6,8 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 
+import { ActiveCell } from "./active-cell";
+
 const columnHelper = createColumnHelper<GlobalConcurrencyLimit>();
 const columns = [
 	columnHelper.accessor("name", {
@@ -19,6 +21,10 @@ const columns = [
 	}),
 	columnHelper.accessor("slot_decay_per_second", {
 		header: "Slots Decay Per Second",
+	}),
+	columnHelper.accessor("active", {
+		header: "Active",
+		cell: ActiveCell,
 	}),
 ];
 
