@@ -58,9 +58,9 @@ First, create a work pool for your production workspace.
 
 1. Switch to the `production` workspace using the workspace switcher in the sidebar.
 1. Click **Work pools** in the sidebar.
-1. Create a new **Docker** hybrid work pool, named `default-work-pool` and using the default configuration.
+1. Create a new **Docker** hybrid work pool, named `my-work-pool` and using the default configuration.
 
-Next, repeat this steps and create a second work pool named `default-work-pool` in the `staging` workspace.
+Next, repeat this steps and create a second work pool named `my-work-pool` in the `staging` workspace.
 You should now have one work pool in each workspace.
 
 ## Start workers
@@ -80,7 +80,7 @@ Once you've authenticated to Prefect Cloud, open two terminal windows and run tw
 prefect cloud workspace set --workspace "<account handle>/production"
 
 # Start a worker for the production work pool
-prefect worker start --pool default-work-pool
+prefect worker start --pool my-work-pool
 ```
 
 ```bash Terminal 2
@@ -88,7 +88,7 @@ prefect worker start --pool default-work-pool
 prefect cloud workspace set --workspace "<account handle>/staging"
 
 # Start a worker for the staging work pool
-prefect worker start --pool default-work-pool
+prefect worker start --pool my-work-pool
 ```
 
 <Note>
@@ -167,7 +167,7 @@ However, you can partition your infrastructure by granting teams access to only 
 
 1. Select the `staging` workspace using the workspace switcher.
 1. Click **Work pools** in the sidebar.
-1. Open the actions menu for the `default-work-pool` work pool, and then click **Manage Access**.
+1. Open the actions menu for the `my-work-pool` work pool, and then click **Manage Access**.
 1. Click **Add Users, Service Accounts, & Teams**.
 1. Click the **Actors** dropdown, and then select the `everyone` and `developers` teams.
 1. Click the **Access Level** dropdown, and then select **Run**.
