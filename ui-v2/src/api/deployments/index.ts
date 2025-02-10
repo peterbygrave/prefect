@@ -317,7 +317,7 @@ export const useDeleteDeploymentSchedule = () => {
 				params: { path: { schedule_id, id: deployment_id } },
 			}),
 		onSettled: () =>
-			queryClient.invalidateQueries({ queryKey: queryKeyFactory.lists() }),
+			queryClient.invalidateQueries({ queryKey: queryKeyFactory.all() }),
 	});
 
 	return { deleteDeploymentSchedule, ...rest };
