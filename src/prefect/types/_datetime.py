@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import Any
 
 import pendulum
@@ -15,6 +16,7 @@ from typing_extensions import TypeAlias
 
 DateTime: TypeAlias = PydanticDateTime
 Date: TypeAlias = PydanticDate
+
 Duration: TypeAlias = PendulumDuration
 
 
@@ -45,3 +47,14 @@ def from_format(
     locale: str | None = None,
 ) -> DateTime:
     return DateTime.instance(pendulum.from_format(value, fmt, tz, locale))
+
+
+def human_friendly_diff(dt: DateTime | datetime.datetime) -> str:
+    if isinstance(dt, DateTime):
+        return dt.diff_for_humans()
+    else:
+        return DateTime.instance(dt).diff_for_humans()
+
+
+def now(tz: str | Timezone = pendulum.tz.UTC) -> DateTime:
+    return DateTime.now(tz)
