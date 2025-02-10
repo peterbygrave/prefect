@@ -15,6 +15,7 @@ from typing_extensions import TypeAlias
 
 DateTime: TypeAlias = PydanticDateTime
 Date: TypeAlias = PydanticDate
+Duration: TypeAlias = PendulumDuration
 
 
 def parse_datetime(
