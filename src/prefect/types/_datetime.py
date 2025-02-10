@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import Any
 
 import pendulum
@@ -43,7 +44,7 @@ def get_timezones() -> tuple[str, ...]:
     return pendulum.tz.timezones()
 
 
-def pendulum_instance(v: DateTime) -> DateTime:
+def pendulum_instance(v: datetime.datetime) -> DateTime:
     return DateTime.instance(pendulum.instance(v))
 
 
