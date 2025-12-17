@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
-import { Area, AreaChart, ReferenceArea, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, XAxis, YAxis } from "recharts";
 import type { EventsCount } from "@/api/events";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { cn } from "@/utils";
@@ -8,7 +8,7 @@ import { cn } from "@/utils";
 type ChartDataPoint = {
 	time: number;
 	count: number;
-	label: string | undefined;
+	label: string;
 };
 
 type EventsTooltipProps = {
@@ -45,18 +45,10 @@ export type EventsLineChartProps = {
 	className?: string;
 	/** Whether to show the X-axis with time labels (default: true) */
 	showAxis?: boolean;
-	/** Current zoom range start */
-	zoomStart?: Date;
-	/** Current zoom range end */
-	zoomEnd?: Date;
-	/** Selection range start (for filtering) */
-	selectionStart?: Date | null;
-	/** Selection range end (for filtering) */
-	selectionEnd?: Date | null;
-	/** Called when zoom range changes (via scroll wheel) */
-	onZoomChange?: (start: Date, end: Date) => void;
-	/** Called when selection range changes (via drag) */
-	onSelectionChange?: (start: Date | null, end: Date | null) => void;
+	/** Date range start for chart display */
+	startDate?: Date;
+	/** Date range end for chart display */
+	endDate?: Date;
 	/** Called when mouse hovers over chart with timestamp */
 	onCursorChange?: (timestamp: Date | null) => void;
 };
@@ -68,7 +60,7 @@ export type EventsLineChartRef = {
 const chartConfig = {
 	count: {
 		label: "Events",
-		color: "hsl(var(--primary))",
+		color: "hsl(262.1 83.3% 57.8%)",
 	},
 };
 
@@ -76,14 +68,7 @@ export const EventsLineChart = forwardRef<
 	EventsLineChartRef,
 	EventsLineChartProps
 >(function EventsLineChart(
-	{
-		data,
-		className,
-		showAxis = true,
-		selectionStart,
-		selectionEnd,
-		onCursorChange,
-	},
+	{ data, className, showAxis = true, startDate, endDate, onCursorChange },
 	ref,
 ) {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -94,15 +79,32 @@ export const EventsLineChart = forwardRef<
 		},
 	}));
 
-	const chartData = useMemo(
-		() =>
-			data.map((item) => ({
-				time: new Date(item.start_time).getTime(),
-				count: item.count,
-				label: item.label,
-			})),
-		[data],
-	);
+	const chartData = useMemo(() => {
+		const points = data.map((item) => ({
+			time: new Date(item.start_time).getTime(),
+			count: item.count,
+			label: item.label,
+		}));
+
+		// Ensure we have boundary points at startDate and endDate so the line
+		// extends across the full chart width (matching Vue implementation)
+		if (startDate && endDate) {
+			const startTime = startDate.getTime();
+			const endTime = endDate.getTime();
+
+			// Add start boundary point if not present
+			if (points.length === 0 || points[0].time > startTime) {
+				points.unshift({ time: startTime, count: 0, label: "" });
+			}
+
+			// Add end boundary point if not present
+			if (points.length === 0 || points[points.length - 1].time < endTime) {
+				points.push({ time: endTime, count: 0, label: "" });
+			}
+		}
+
+		return points;
+	}, [data, startDate, endDate]);
 
 	const handleMouseMove = (state: { activeLabel?: string | number }) => {
 		if (state.activeLabel !== undefined && onCursorChange) {
@@ -120,21 +122,15 @@ export const EventsLineChart = forwardRef<
 		onCursorChange?.(null);
 	};
 
-	// Calculate selection area bounds
-	const selectionArea = useMemo(() => {
-		if (!selectionStart || !selectionEnd) return null;
-		return {
-			x1: selectionStart.getTime(),
-			x2: selectionEnd.getTime(),
-		};
-	}, [selectionStart, selectionEnd]);
-
 	return (
 		<div ref={containerRef} className={cn("relative", className)}>
-			<ChartContainer config={chartConfig} className="h-full w-full">
+			<ChartContainer
+				config={chartConfig}
+				className="h-full w-[calc(100%+3rem)] -mx-6"
+			>
 				<AreaChart
 					data={chartData}
-					margin={{ top: 10, right: 10, bottom: 0, left: 10 }}
+					margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
 					onMouseMove={handleMouseMove}
 					onMouseLeave={handleMouseLeave}
 				>
@@ -161,25 +157,16 @@ export const EventsLineChart = forwardRef<
 						domain={["dataMin", "dataMax"]}
 						hide={!showAxis}
 					/>
-					<YAxis hide domain={[0, "auto"]} />
+					<YAxis hide domain={[0, (max: number) => Math.max(1, max)]} />
 					<ChartTooltip content={<EventsTooltipContent />} />
-					{/* Selection highlight area */}
-					{selectionArea && (
-						<ReferenceArea
-							x1={selectionArea.x1}
-							x2={selectionArea.x2}
-							fill="hsl(var(--primary))"
-							fillOpacity={0.2}
-							stroke="hsl(var(--primary))"
-							strokeOpacity={0.5}
-						/>
-					)}
 					<Area
 						type="monotone"
 						dataKey="count"
 						stroke="var(--color-count)"
 						strokeWidth={2}
 						fill="url(#eventsGradient)"
+						dot={false}
+						activeDot={false}
 						isAnimationActive={false}
 					/>
 				</AreaChart>

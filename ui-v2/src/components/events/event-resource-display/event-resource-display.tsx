@@ -3,10 +3,12 @@ import type { Event } from "@/api/events";
 import { Icon } from "@/components/ui/icons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/utils";
+import { ResolvedResourceDisplay } from "./resolved-resource-display";
 import {
 	extractResourceId,
 	parseResourceType,
 	RESOURCE_ICONS,
+	RESOURCE_TYPE_LABELS,
 	type ResourceType,
 } from "./resource-types";
 
@@ -40,9 +42,11 @@ export function ResourceDisplayWithIcon({
 	className,
 }: ResourceDisplayWithIconProps) {
 	const iconId = RESOURCE_ICONS[resourceType];
+	const typeLabel = RESOURCE_TYPE_LABELS[resourceType];
 
 	return (
 		<div className={cn("flex items-center gap-2", className)}>
+			{typeLabel && <span>{typeLabel}</span>}
 			<Icon id={iconId} className="h-4 w-4 text-muted-foreground" />
 			<span>{displayText}</span>
 		</div>
@@ -83,7 +87,23 @@ export function EventResourceDisplay({
 		);
 	}
 
-	// If we have an extracted ID but no name, show the ID with the icon
+	// If we have an extracted ID but no name, try to fetch the resource name via API
+	if (extractedId && resourceType !== "unknown") {
+		return (
+			<div className={cn("flex flex-col gap-0.5", className)}>
+				<span className="text-sm font-medium">Resource</span>
+				<Suspense fallback={<ResourceDisplaySkeleton />}>
+					<ResolvedResourceDisplay
+						resourceType={resourceType}
+						resourceId={extractedId}
+						className="text-sm"
+					/>
+				</Suspense>
+			</div>
+		);
+	}
+
+	// If we have an extracted ID but unknown type, show the ID with the icon
 	if (extractedId) {
 		return (
 			<div className={cn("flex flex-col gap-0.5", className)}>
